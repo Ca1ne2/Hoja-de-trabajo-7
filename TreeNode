@@ -1,0 +1,109 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+
+class TreeNode {
+    String english;
+    String spanish;
+    TreeNode left;
+    TreeNode right;
+
+    public TreeNode(String english, String spanish) {
+        this.english = english;
+        this.spanish = spanish;
+        left = null;
+        right = null;
+    }
+}
+
+class BSTDictionary {
+    private TreeNode root;
+
+    public BSTDictionary() {
+        root = null;
+    }
+
+    public void insert(String english, String spanish) {
+        root = insertRec(root, english, spanish);
+    }
+
+    private TreeNode insertRec(TreeNode root, String english, String spanish) {
+        if (root == null) {
+            root = new TreeNode(english, spanish);
+            return root;
+        }
+
+        if (english.compareToIgnoreCase(root.english) < 0) {
+            root.left = insertRec(root.left, english, spanish);
+        } else if (english.compareToIgnoreCase(root.english) > 0) {
+            root.right = insertRec(root.right, english, spanish);
+        }
+
+        return root;
+    }
+
+    public void inOrderTraversal() {
+        inOrderTraversalRec(root);
+    }
+
+    private void inOrderTraversalRec(TreeNode root) {
+        if (root != null) {
+            inOrderTraversalRec(root.left);
+            System.out.println("(" + root.english + ", " + root.spanish + ")");
+            inOrderTraversalRec(root.right);
+        }
+    }
+
+    public String translate(String word) {
+        return translateRec(root, word);
+    }
+
+    private String translateRec(TreeNode root, String word) {
+        if (root == null) {
+            return "*" + word + "*";
+        }
+
+        if (word.compareToIgnoreCase(root.english) < 0) {
+            return translateRec(root.left, word);
+        } else if (word.compareToIgnoreCase(root.english) > 0) {
+            return translateRec(root.right, word);
+        }
+
+        return root.spanish;
+    }
+}
+
+public class DictionaryProgram {
+    public static void main(String[] args) {
+        BSTDictionary dictionary = new BSTDictionary();
+
+        try (BufferedReader br = new BufferedReader(new FileReader("diccionario.txt"))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] pair = line.split(", ");
+                String english = pair[0].substring(1, pair[0].length() - 1);
+                String spanish = pair[1].substring(0, pair[1].length() - 1);
+                dictionary.insert(english, spanish);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Dictionary:");
+        dictionary.inOrderTraversal();
+
+        try (BufferedReader br = new BufferedReader(new FileReader("texto.txt"))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] words = line.split(" ");
+                StringBuilder translation = new StringBuilder();
+                for (String word : words) {
+                    translation.append(dictionary.translate(word)).append(" ");
+                }
+                System.out.println(translation.toString().trim());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
